@@ -12,6 +12,11 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+app.post("/api/user-data", (req, res) => {
+  console.log("Data received:", req.body);
+  res.status(200).json({ message: "Data received!" });
+});
+
 app.post("/api/form-data", async (req, res) => {
   const { form_data, org_id } = req.body;
 
@@ -22,7 +27,7 @@ app.post("/api/form-data", async (req, res) => {
   const newEntry = {
     org_id,
     form_data, // will be stored as JSONB
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 
   try {
@@ -54,7 +59,7 @@ app.get("/api/form-data", async (req, res) => {
 
     res.status(200).json({
       message: "Form data fetched",
-      formData: data
+      formData: data,
     });
   } catch (err) {
     console.error("Unexpected error:", err);
@@ -62,5 +67,8 @@ app.get("/api/form-data", async (req, res) => {
   }
 });
 
+app.listen(3000, () => {
+  console.log(`Server is running on http://localhost:${3000}`);
+});
 // Don't call app.listen() — for Vercel
 module.exports = app;
