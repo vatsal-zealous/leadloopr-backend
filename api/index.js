@@ -1,10 +1,10 @@
 const express = require("express");
 const fs = require("fs");
+const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
   "http://localhost:9002",
@@ -12,30 +12,7 @@ const allowedOrigins = [
   "https://yourdomain.com",
 ];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (allowedOrigins.includes(origin)) {
-//       callback(null, origin);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// };
-
-// // const corsOptions = {
-// //   origin: function (origin, callback) {
-// //     if (!origin) return callback(null, false);
-// //     callback(null, origin);
-// //   },
-// //   credentials: true,
-// // };
-
-// app.use(cors({
-//   origin: 'http://192.168.1.95:9002', // or your frontend domain
-//   credentials: true
-// }));
-
+// Simple CORS setup for now
 app.use(cors());
 app.use(express.json());
 
@@ -48,6 +25,7 @@ app.post("/api/form-data", (req, res) => {
   console.log("Form Data", req.body);
   try {
     const jsonData = req.body;
+    const filePath = path.join(__dirname, "..", "form-data.json");
 
     if (jsonData.form_data) {
       const newEntry = {
@@ -58,16 +36,15 @@ app.post("/api/form-data", (req, res) => {
 
       let existingData = [];
 
-      if (fs.existsSync("form-data.json")) {
-        const fileData = fs.readFileSync("form-data.json", "utf8");
+      if (fs.existsSync(filePath)) {
+        const fileData = fs.readFileSync(filePath, "utf8");
         if (fileData) {
           existingData = JSON.parse(fileData);
         }
       }
 
       existingData.push(newEntry);
-
-      fs.writeFileSync("form-data.json", JSON.stringify(existingData, null, 2));
+      fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
 
       res.status(200).json({ message: "Data appended successfully!" });
     } else {
@@ -81,14 +58,16 @@ app.post("/api/form-data", (req, res) => {
 
 app.get("/api/form-data", async (req, res) => {
   try {
-    const filePath = "form-data.json";
+    const filePath = path.join(__dirname, "..", "form-data.json");
 
     if (!fs.existsSync(filePath)) {
       return res.status(200).json({ formData: [], message: "No data found!" });
     }
-    const data = fs.readFileSync("form-data.json", "utf8");
+
+    const data = fs.readFileSync(filePath, "utf8");
     const jsonData = JSON.parse(data);
     const sortedData = jsonData.reverse();
+
     res
       .status(200)
       .json({ formData: sortedData, message: "Data fetched successfully!" });
@@ -98,25 +77,5 @@ app.get("/api/form-data", async (req, res) => {
   }
 });
 
-// app.get("/api/form-data/consent", (req, res) => {
-//   const value = req.query.value === "true" ? "true" : "false";
-
-//   res.cookie("cookie-consent", value, {
-//     httpOnly: true,
-//     domain: "192.168.1.48",
-//     secure: false,
-//     sameSite: "None",
-//     path: "/",
-//     maxAge: 31536000000,
-//   });
-
-//   res.status(200).json({
-//     message: `Consent ${value === "true" ? "granted" : "denied"}`,
-//     consent: value,
-//   });
-// });
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-1;
+// ✅ Do NOT start the server manually
+module.exports = app;
