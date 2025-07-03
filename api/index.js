@@ -70,8 +70,71 @@ app.get("/api/form-data", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log(`Server is running on http://localhost:${3000}`);
+app.get("/api/lead-conversions", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("form_entries")
+      .select("gclid, timestamp, org_id")
+      .not("gclid", "is", null)
+      .order("timestamp", { ascending: false });
+
+    if (error) {
+      console.error("Fetch error:", error);
+      return res.status(500).json({ error: "Failed to fetch conversion data" });
+    }
+
+    const conversions = data.map((entry) => ({
+      gclid: entry.gclid,
+      conversion_time: new Date(entry.timestamp).toISOString(),
+      conversion_name: entry.org_id,
+    }));
+
+    res.status(200).json({
+      message: "Google conversion data fetched",
+      conversions,
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ error: "Unexpected server error" });
+  }
 });
+
+app.get("/api/lead-conversions.csv", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("form_entries")
+      .select("gclid, timestamp, org_id")
+      .not("gclid", "is", null)
+      .order("timestamp", { ascending: false });
+
+    if (error) {
+      console.error("Fetch error:", error);
+      return res.status(500).send("Failed to fetch conversion data");
+    }
+
+    const header =
+      "Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency";
+    const rows = data.map((entry) => {
+      const time = new Date(entry.timestamp)
+        .toISOString()
+        .replace("T", " ")
+        .split(".")[0]; // Format: YYYY-MM-DD HH:mm:ss
+      return `${entry.gclid},${entry.org_id},${time},1,USD`;
+    });
+
+    const csvContent = [header, ...rows].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=conversions.csv"
+    );
+    res.status(200).send(csvContent);
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).send("Unexpected server error");
+  }
+});
+
 // Don't call app.listen() — for Vercel
 module.exports = app;
