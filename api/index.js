@@ -118,9 +118,8 @@ app.get("/api/lead-conversions.csv", async (req, res) => {
     const rows = data.map((entry) => {
       const date = new Date(entry.timestamp);
 
-      // Convert to IST and format as 'YYYY-MM-DD HH:mm:ss+0530'
       const istDate = new Date(
-        date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+        date.toLocaleString("en-US", { timeZone: "Europe/Amsterdam" })
       );
 
       const pad = (n) => String(n).padStart(2, "0");
