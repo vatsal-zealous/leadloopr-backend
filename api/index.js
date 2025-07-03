@@ -129,7 +129,7 @@ app.get("/api/lead-conversions.csv", async (req, res) => {
         istDate.getMinutes()
       )}:${pad(istDate.getSeconds())}+0530`;
 
-      return `${entry.gclid},${entry.org_id},${formattedTime},100,USD`;
+      return `${entry.gclid},${entry.org_id},${formattedTime},1,USD`;
     });
 
     const csvContent = [header, ...rows].join("\n");
