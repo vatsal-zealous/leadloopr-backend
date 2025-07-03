@@ -18,16 +18,19 @@ app.post("/api/user-data", (req, res) => {
 });
 
 app.post("/api/form-data", async (req, res) => {
-  const { form_data, org_id } = req.body;
+  const { form_data, org_id, attribution } = req.body;
 
   if (!form_data || !org_id) {
     return res.status(400).json({ message: "Missing form_data or org_id" });
   }
 
+  const gclid = attribution?.gclid || null;
+
   const newEntry = {
     org_id,
     form_data, // will be stored as JSONB
     timestamp: new Date().toISOString(),
+    gclid,
   };
 
   try {
