@@ -114,12 +114,23 @@ app.get("/api/lead-conversions.csv", async (req, res) => {
 
     const header =
       "Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency";
+
     const rows = data.map((entry) => {
-      const time = new Date(entry.timestamp)
-        .toISOString()
-        .replace("T", " ")
-        .split(".")[0]; // Format: YYYY-MM-DD HH:mm:ss
-      return `${entry.gclid},${entry.org_id},${time},1,USD`;
+      const date = new Date(entry.timestamp);
+
+      // Convert to IST and format as 'YYYY-MM-DD HH:mm:ss+0530'
+      const istDate = new Date(
+        date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
+
+      const pad = (n) => String(n).padStart(2, "0");
+      const formattedTime = `${istDate.getFullYear()}-${pad(
+        istDate.getMonth() + 1
+      )}-${pad(istDate.getDate())} ${pad(istDate.getHours())}:${pad(
+        istDate.getMinutes()
+      )}:${pad(istDate.getSeconds())}+0530`;
+
+      return `${entry.gclid},${entry.org_id},${formattedTime},100,USD`;
     });
 
     const csvContent = [header, ...rows].join("\n");
